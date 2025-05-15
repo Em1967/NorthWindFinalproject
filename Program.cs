@@ -114,8 +114,6 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
         Console.WriteLine("=== Category Menu ===");
         Console.WriteLine("1. Display All Categories");
         Console.WriteLine("2. Add New Category");
-        Console.WriteLine("3. Edit Category");
-        Console.WriteLine("4. Delete Category");
         Console.WriteLine("0. Back to Main Menu");
         Console.Write("Choose an option: ");
         string? input = Console.ReadLine();
@@ -123,21 +121,19 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
         switch (input)
         {
             case "1":
+                logger.Info("User selected to display all categories.");
                 DisplayCategories(options);
                 break;
             case "2":
+                logger.Info("User selected to add a new category.");
                 AddCategory(options);
                 break;
-            case "3":
-                EditCategory(options);
-                break;
-            case "4":
-                DeleteCategory(options);
-                break;
             case "0":
+                logger.Info("Returning to main menu from Category Menu.");
                 back = true;
                 break;
             default:
+                logger.Warn("Invalid category menu choice: {0}", input);
                 Console.WriteLine("Invalid choice. Try again.");
                 Console.ReadKey();
                 break;
@@ -363,6 +359,50 @@ static void DisplayCategories(DbContextOptions<DataContext> options)
     }
 
     logger.Info("Displayed {0} categories.", categories.Count);
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
+static void AddCategory(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Add New Category ===");
+
+    Console.Write("Enter Category Name: ");
+    string? name = Console.ReadLine();
+
+    Console.Write("Enter Description (optional): ");
+    string? description = Console.ReadLine();
+
+    if (string.IsNullOrWhiteSpace(name))
+    {
+        Console.WriteLine("Category name is required.");
+        logger.Warn("Attempted to add category with no name.");
+        return;
+    }
+
+    var category = new Category
+    {
+        CategoryName = name,
+        Description = description
+    };
+
+    try
+    {
+        db.Categories.Add(category);
+        db.SaveChanges();
+
+        Console.WriteLine("Category added successfully.");
+        logger.Info("Added category: {0}", name);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error adding category.");
+        logger.Error(ex, "Failed to add category: {0}", name);
+    }
+
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
 }
