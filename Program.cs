@@ -66,7 +66,7 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
     {
         Console.Clear();
         Console.WriteLine("=== Product Menu ===");
-        
+        Console.WriteLine("3. Edit Product");
         Console.WriteLine("2. Add New Product");
         Console.WriteLine("1. Display All Products");
         Console.WriteLine("0. Back to Main Menu");
