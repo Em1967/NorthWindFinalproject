@@ -345,3 +345,24 @@ static void DeleteProduct(DbContextOptions<DataContext> options)
     Console.WriteLine("Product deleted successfully.");
     logger.Info("Deleted product ID {0} - {1}", id, product.ProductName);
 }
+static void DisplayCategories(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Categories ===");
+
+    var categories = db.Categories.ToList();
+
+    foreach (var cat in categories)
+    {
+        Console.WriteLine($"ID: {cat.CategoryId} - {cat.CategoryName}");
+        if (!string.IsNullOrWhiteSpace(cat.Description))
+            Console.WriteLine($"   Description: {cat.Description}");
+    }
+
+    logger.Info("Displayed {0} categories.", categories.Count);
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
