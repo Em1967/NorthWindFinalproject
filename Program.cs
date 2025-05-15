@@ -75,6 +75,10 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
 
         switch (input)
         {
+            case "3":
+                logger.Info("User selected to edit a product.");
+                EditProduct(options);
+                break;
             case "2":
                 logger.Info("User selected to add a new product.");
                 AddNewProduct(options);
