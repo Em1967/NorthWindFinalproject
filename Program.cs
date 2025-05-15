@@ -17,8 +17,8 @@ string connectionString = config.GetConnectionString("DefaultConnection");
 
 var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
 optionsBuilder.UseSqlServer(connectionString);
-
-using var context = new DataContext(optionsBuilder.Options);
+var options = optionsBuilder.Options;
+using var context = new DataContext(options);
 
 logger.Info("Program started");
 
@@ -38,7 +38,7 @@ while (!exit)
     {
         case "1":
             logger.Info("User opened Product Menu.");
-            ShowProductMenu();
+            ShowProductMenu(options);
             break;
         case "2":
             logger.Info("User selected Category Menu (not yet implemented).");
@@ -47,6 +47,7 @@ while (!exit)
             break;
         case "0":
             logger.Info("User exited the application.");
+            logger.Info("Program ended");
             exit = true;
             break;
         default:
@@ -56,7 +57,7 @@ while (!exit)
             break;
     }
 }
-static void ShowProductMenu()
+static void ShowProductMenu(DbContextOptions<DataContext> options)
 {
     var logger = LogManager.GetCurrentClassLogger();
     bool back = false;
@@ -65,6 +66,7 @@ static void ShowProductMenu()
     {
         Console.Clear();
         Console.WriteLine("=== Product Menu ===");
+        Console.WriteLine("2. Add New Product");
         Console.WriteLine("1. Display All Products");
         Console.WriteLine("0. Back to Main Menu");
         Console.Write("Choose an option: ");
@@ -72,9 +74,13 @@ static void ShowProductMenu()
 
         switch (input)
         {
+            case "2":
+                logger.Info("User selected to add a new product.");
+                AddNewProduct(options);
+                break;
             case "1":
                 logger.Info("User selected to display all products.");
-                DisplayProducts();
+                DisplayProducts(options);
                 break;
             case "0":
                 logger.Info("Returning to main menu.");
@@ -88,11 +94,11 @@ static void ShowProductMenu()
         }
     }
 }
-static void DisplayProducts()
+static void DisplayProducts(DbContextOptions<DataContext> options)
 {
     var logger = LogManager.GetCurrentClassLogger();
 
-    using var db = new DataContext();
+    using var db = new DataContext(options);
 
     Console.Clear();
     Console.WriteLine("Display products:");
@@ -122,4 +128,4 @@ static void DisplayProducts()
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
 }
-logger.Info("Program ended");
+
