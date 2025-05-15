@@ -1,11 +1,24 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using NorthwindConsole.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 ﻿using NLog;
 string path = Directory.GetCurrentDirectory() + "//nlog.config";
 
 
 var logger = LogManager.Setup().LoadConfigurationFromFile(path).GetCurrentClassLogger();
+
+var builder = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+IConfiguration config = builder.Build();
+
+string connectionString = config.GetConnectionString("DefaultConnection");
+
+var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
+optionsBuilder.UseSqlServer(connectionString);
+
+using var context = new DataContext(optionsBuilder.Options);
 
 logger.Info("Program started");
 
