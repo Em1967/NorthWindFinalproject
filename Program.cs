@@ -26,12 +26,15 @@ bool exit = false;
 
 while (!exit)
 {
-    Console.Clear();
-    Console.WriteLine("=== Northwind Console App ===");
-    Console.WriteLine("1. Product Menu");
-    Console.WriteLine("2. Category Menu (coming soon)");
-    Console.WriteLine("0. Exit");
-    Console.Write("Select an option: ");
+
+        Console.Clear();
+        Console.WriteLine("=== Category Menu ===");
+        Console.WriteLine("1. Display All Categories");
+        Console.WriteLine("2. Add New Category");
+        Console.WriteLine("3. Edit Category");
+        Console.WriteLine("4. Delete Category");
+        Console.WriteLine("0. Back to Main Menu");
+        Console.Write("Choose an option: ");
     string? choice = Console.ReadLine();
 
     switch (choice)
