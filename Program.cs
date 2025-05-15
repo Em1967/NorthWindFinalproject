@@ -26,15 +26,12 @@ bool exit = false;
 
 while (!exit)
 {
-
-        Console.Clear();
-        Console.WriteLine("=== Category Menu ===");
-        Console.WriteLine("1. Display All Categories");
-        Console.WriteLine("2. Add New Category");
-        Console.WriteLine("3. Edit Category");
-        Console.WriteLine("4. Delete Category");
-        Console.WriteLine("0. Back to Main Menu");
-        Console.Write("Choose an option: ");
+    Console.Clear();
+    Console.WriteLine("=== Northwind Console App ===");
+    Console.WriteLine("1. Product Menu");
+    Console.WriteLine("2. Category Menu (coming soon)");
+    Console.WriteLine("0. Exit");
+    Console.Write("Select an option: ");
     string? choice = Console.ReadLine();
 
     switch (choice)
@@ -44,16 +41,9 @@ while (!exit)
             ShowProductMenu(options);
             break;
         case "2":
-            logger.Info("User selected Category Menu (not yet implemented).");
-            Console.WriteLine("Category Menu not implemented yet.");
-            Console.ReadKey();
-            break;
-             case "3":
-            EditCategory(options);
-            break;
-        case "4":
-            DeleteCategory(options);
-                break;
+    logger.Info("User opened Category Menu.");
+    ShowCategoryMenu(options);
+    break;
         case "0":
             logger.Info("User exited the application.");
             logger.Info("Program ended");
@@ -88,7 +78,7 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
             case "4":
                 logger.Info("User selected to delete a product.");
                 DeleteProduct(options);
-                 break;
+                break;
             case "3":
                 logger.Info("User selected to edit a product.");
                 EditProduct(options);
@@ -107,6 +97,47 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
                 break;
             default:
                 logger.Warn("Invalid product menu choice: {0}", input);
+                Console.WriteLine("Invalid choice. Try again.");
+                Console.ReadKey();
+                break;
+        }
+    }
+}
+static void ShowCategoryMenu(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    bool back = false;
+
+    while (!back)
+    {
+        Console.Clear();
+        Console.WriteLine("=== Category Menu ===");
+        Console.WriteLine("1. Display All Categories");
+        Console.WriteLine("2. Add New Category");
+        Console.WriteLine("3. Edit Category");
+        Console.WriteLine("4. Delete Category");
+        Console.WriteLine("0. Back to Main Menu");
+        Console.Write("Choose an option: ");
+        string? input = Console.ReadLine();
+
+        switch (input)
+        {
+            case "1":
+                DisplayCategories(options);
+                break;
+            case "2":
+                AddCategory(options);
+                break;
+            case "3":
+                EditCategory(options);
+                break;
+            case "4":
+                DeleteCategory(options);
+                break;
+            case "0":
+                back = true;
+                break;
+            default:
                 Console.WriteLine("Invalid choice. Try again.");
                 Console.ReadKey();
                 break;
