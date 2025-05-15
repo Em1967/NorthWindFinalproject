@@ -190,4 +190,75 @@ static void AddNewProduct(DbContextOptions<DataContext> options)
 
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
+
+}
+static void EditProduct(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    try
+    {
+        Console.Clear();
+        Console.WriteLine("=== Edit Product ===");
+
+        Console.Write("Enter Product ID to edit: ");
+        if (!int.TryParse(Console.ReadLine(), out int productId))
+        {
+            Console.WriteLine("Invalid ID. Returning...");
+            return;
+        }
+
+        var product = db.Products.FirstOrDefault(p => p.ProductId == productId);
+
+        if (product == null)
+        {
+            Console.WriteLine("Product not found.");
+            return;
+        }
+
+        Console.WriteLine($"Current Name: {product.ProductName}");
+        Console.Write("New Name (leave blank to keep): ");
+        string? name = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(name)) product.ProductName = name;
+
+        Console.WriteLine($"Current Unit Price: {(product.UnitPrice.HasValue ? product.UnitPrice.Value.ToString("C") : "None")}");
+Console.Write("New Price (leave blank to keep current): ");
+string? priceInput = Console.ReadLine();
+
+if (!string.IsNullOrWhiteSpace(priceInput))
+{
+    if (decimal.TryParse(priceInput, out decimal newPrice))
+    {
+        product.UnitPrice = newPrice;
+    }
+    else
+    {
+        Console.WriteLine("Invalid input. Price not changed.");
+    }
+}
+
+        Console.WriteLine($"Current Stock: {product.UnitsInStock}");
+        Console.Write("New Stock (leave blank to keep): ");
+        string? stockInput = Console.ReadLine();
+        if (short.TryParse(stockInput, out short newStock)) product.UnitsInStock = newStock;
+
+        Console.WriteLine($"Currently Discontinued: {product.Discontinued}");
+        Console.Write("Is Discontinued? (y/n, blank to keep): ");
+        string? discInput = Console.ReadLine();
+        if (discInput?.ToLower() == "y") product.Discontinued = true;
+        else if (discInput?.ToLower() == "n") product.Discontinued = false;
+
+        db.SaveChanges();
+        logger.Info("Product {0} updated.", productId);
+        Console.WriteLine("Product updated successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.Error(ex, "Error editing product.");
+        Console.WriteLine("Failed to edit product.");
+    }
+
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
 }
