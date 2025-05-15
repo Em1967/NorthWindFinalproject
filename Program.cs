@@ -66,6 +66,7 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
     {
         Console.Clear();
         Console.WriteLine("=== Product Menu ===");
+        
         Console.WriteLine("2. Add New Product");
         Console.WriteLine("1. Display All Products");
         Console.WriteLine("0. Back to Main Menu");
@@ -129,3 +130,60 @@ static void DisplayProducts(DbContextOptions<DataContext> options)
     Console.ReadKey();
 }
 
+static void AddNewProduct(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    try
+    {
+        Console.Clear();
+        Console.WriteLine("=== Add New Product ===");
+
+        Console.Write("Enter Product Name: ");
+        string? name = Console.ReadLine();
+
+        Console.Write("Enter Supplier ID (number): ");
+        int supplierId = int.Parse(Console.ReadLine() ?? "0");
+
+        Console.Write("Enter Category ID (number): ");
+        int categoryId = int.Parse(Console.ReadLine() ?? "0");
+
+        Console.Write("Enter Quantity Per Unit: ");
+        string? quantityPerUnit = Console.ReadLine();
+
+        Console.Write("Enter Unit Price: ");
+        decimal price = decimal.Parse(Console.ReadLine() ?? "0");
+
+        Console.Write("Enter Units In Stock: ");
+        short stock = short.Parse(Console.ReadLine() ?? "0");
+
+        Console.Write("Is Discontinued? (y/n): ");
+        bool discontinued = Console.ReadLine()?.ToLower() == "y";
+
+        Product newProduct = new()
+        {
+            ProductName = name,
+            SupplierId = supplierId,
+            CategoryId = categoryId,
+            QuantityPerUnit = quantityPerUnit,
+            UnitPrice = price,
+            UnitsInStock = stock,
+            Discontinued = discontinued
+        };
+
+        db.Products.Add(newProduct);
+        db.SaveChanges();
+
+        logger.Info("Product added: {0}", name);
+        Console.WriteLine("Product added successfully!");
+    }
+    catch (Exception ex)
+    {
+        logger.Error(ex, "Error adding product");
+        Console.WriteLine("Failed to add product. Check logs for details.");
+    }
+
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
