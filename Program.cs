@@ -66,6 +66,7 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
     {
         Console.Clear();
         Console.WriteLine("=== Product Menu ===");
+        Console.WriteLine("4. Delete Product");
         Console.WriteLine("3. Edit Product");
         Console.WriteLine("2. Add New Product");
         Console.WriteLine("1. Display All Products");
@@ -75,6 +76,10 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
 
         switch (input)
         {
+            case "4":
+                logger.Info("User selected to delete a product.");
+                DeleteProduct(options);
+                 break;
             case "3":
                 logger.Info("User selected to edit a product.");
                 EditProduct(options);
@@ -126,7 +131,7 @@ static void DisplayProducts(DbContextOptions<DataContext> options)
     foreach (var p in products)
     {
         var status = p.Discontinued ? "[Discontinued]" : "[Active]";
-        Console.WriteLine($"{status} {p.ProductName}");
+        Console.WriteLine($"{status} ID: {p.ProductId} - {p.ProductName}");
     }
 
     logger.Info("Displayed {0} products (Filter: {1})", products.Count, filter);
@@ -223,20 +228,20 @@ static void EditProduct(DbContextOptions<DataContext> options)
         if (!string.IsNullOrWhiteSpace(name)) product.ProductName = name;
 
         Console.WriteLine($"Current Unit Price: {(product.UnitPrice.HasValue ? product.UnitPrice.Value.ToString("C") : "None")}");
-Console.Write("New Price (leave blank to keep current): ");
-string? priceInput = Console.ReadLine();
+        Console.Write("New Price (leave blank to keep current): ");
+        string? priceInput = Console.ReadLine();
 
-if (!string.IsNullOrWhiteSpace(priceInput))
-{
-    if (decimal.TryParse(priceInput, out decimal newPrice))
-    {
-        product.UnitPrice = newPrice;
-    }
-    else
-    {
-        Console.WriteLine("Invalid input. Price not changed.");
-    }
-}
+        if (!string.IsNullOrWhiteSpace(priceInput))
+        {
+            if (decimal.TryParse(priceInput, out decimal newPrice))
+            {
+                product.UnitPrice = newPrice;
+            }
+            else
+            {
+                Console.WriteLine("Invalid input. Price not changed.");
+            }
+        }
 
         Console.WriteLine($"Current Stock: {product.UnitsInStock}");
         Console.Write("New Stock (leave blank to keep): ");
@@ -261,4 +266,42 @@ if (!string.IsNullOrWhiteSpace(priceInput))
 
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
+}
+
+static void DeleteProduct(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+
+    using var db = new DataContext(options);
+
+    Console.Write("Enter Product ID to delete: ");
+    if (!int.TryParse(Console.ReadLine(), out int id))
+    {
+        Console.WriteLine("Invalid ID.");
+        logger.Warn("Invalid input for product ID during delete.");
+        return;
+    }
+
+    var product = db.Products.Find(id);
+    if (product == null)
+    {
+        Console.WriteLine("Product not found.");
+        logger.Warn("Product ID {0} not found for deletion.", id);
+        return;
+    }
+
+    // Check if there are related OrderDetails
+    bool hasOrders = db.OrderDetails.Any(od => od.ProductId == id);
+    if (hasOrders)
+    {
+        Console.WriteLine("Cannot delete product; it has related order records.");
+        logger.Warn("Attempted to delete product ID {0} with related OrderDetails.", id);
+        return;
+    }
+
+    db.Products.Remove(product);
+    db.SaveChanges();
+
+    Console.WriteLine("Product deleted successfully.");
+    logger.Info("Deleted product ID {0} - {1}", id, product.ProductName);
 }
