@@ -48,6 +48,12 @@ while (!exit)
             Console.WriteLine("Category Menu not implemented yet.");
             Console.ReadKey();
             break;
+             case "3":
+            EditCategory(options);
+            break;
+        case "4":
+            DeleteCategory(options);
+                break;
         case "0":
             logger.Info("User exited the application.");
             logger.Info("Program ended");
