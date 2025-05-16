@@ -115,6 +115,7 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
         Console.WriteLine("1. Display All Categories");
         Console.WriteLine("2. Add New Category");
         Console.WriteLine("3. Edit Category");
+        Console.WriteLine("4. Delete Category");
         Console.WriteLine("0. Back to Main Menu");
         Console.Write("Choose an option: ");
         string? input = Console.ReadLine();
@@ -130,9 +131,13 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
                 AddCategory(options);
                 break;
             case "3":
-    logger.Info("User selected to edit a category.");
-    EditCategory(options);
-    break;
+                logger.Info("User selected to edit a category.");
+                EditCategory(options);
+                break;
+            case "4":
+                logger.Info("User selected to delete a category.");
+                DeleteCategory(options);
+                break;
             case "0":
                 logger.Info("Returning to main menu from Category Menu.");
                 back = true;
@@ -456,6 +461,47 @@ static void EditCategory(DbContextOptions<DataContext> options)
         Console.WriteLine("Error updating category.");
         logger.Error(ex, "Failed to update category ID {0}", id);
     }
+
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
+static void DeleteCategory(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Delete Category ===");
+    Console.Write("Enter Category ID to delete: ");
+    if (!int.TryParse(Console.ReadLine(), out int id))
+    {
+        Console.WriteLine("Invalid ID.");
+        logger.Warn("Invalid input for category ID during delete.");
+        return;
+    }
+
+    var category = db.Categories.Find(id);
+    if (category == null)
+    {
+        Console.WriteLine("Category not found.");
+        logger.Warn("Category ID {0} not found for deletion.", id);
+        return;
+    }
+
+    // Check if any products exist in this category
+    bool hasProducts = db.Products.Any(p => p.CategoryId == id);
+    if (hasProducts)
+    {
+        Console.WriteLine("Cannot delete category; it has related products.");
+        logger.Warn("Attempted to delete category ID {0} with related products.", id);
+        return;
+    }
+
+    db.Categories.Remove(category);
+    db.SaveChanges();
+
+    Console.WriteLine("Category deleted successfully.");
+    logger.Info("Deleted category ID {0} - {1}", id, category.CategoryName);
 
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
