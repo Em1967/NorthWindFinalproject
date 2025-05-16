@@ -114,6 +114,7 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
         Console.WriteLine("=== Category Menu ===");
         Console.WriteLine("1. Display All Categories");
         Console.WriteLine("2. Add New Category");
+        Console.WriteLine("3. Edit Category");
         Console.WriteLine("0. Back to Main Menu");
         Console.Write("Choose an option: ");
         string? input = Console.ReadLine();
@@ -128,6 +129,10 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
                 logger.Info("User selected to add a new category.");
                 AddCategory(options);
                 break;
+            case "3":
+    logger.Info("User selected to edit a category.");
+    EditCategory(options);
+    break;
             case "0":
                 logger.Info("Returning to main menu from Category Menu.");
                 back = true;
@@ -401,6 +406,55 @@ static void AddCategory(DbContextOptions<DataContext> options)
     {
         Console.WriteLine("Error adding category.");
         logger.Error(ex, "Failed to add category: {0}", name);
+    }
+
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
+static void EditCategory(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Edit Category ===");
+
+    Console.Write("Enter Category ID to edit: ");
+    if (!int.TryParse(Console.ReadLine(), out int id))
+    {
+        Console.WriteLine("Invalid ID.");
+        logger.Warn("Invalid category ID input for edit.");
+        return;
+    }
+
+    var category = db.Categories.FirstOrDefault(c => c.CategoryId == id);
+    if (category == null)
+    {
+        Console.WriteLine("Category not found.");
+        logger.Warn("Category ID {0} not found for edit.", id);
+        return;
+    }
+
+    Console.WriteLine($"Current Name: {category.CategoryName}");
+    Console.Write("New Name (leave blank to keep): ");
+    string? name = Console.ReadLine();
+    if (!string.IsNullOrWhiteSpace(name)) category.CategoryName = name;
+
+    Console.WriteLine($"Current Description: {category.Description}");
+    Console.Write("New Description (leave blank to keep): ");
+    string? description = Console.ReadLine();
+    if (!string.IsNullOrWhiteSpace(description)) category.Description = description;
+
+    try
+    {
+        db.SaveChanges();
+        Console.WriteLine("Category updated successfully.");
+        logger.Info("Category ID {0} updated.", id);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error updating category.");
+        logger.Error(ex, "Failed to update category ID {0}", id);
     }
 
     Console.WriteLine("\nPress any key to return...");
