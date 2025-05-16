@@ -144,6 +144,10 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
                 logger.Info("User selected to display all categories with active products.");
                 DisplayAllCategoriesWithActiveProducts(options);
                 break;
+                case "6":
+                logger.Info("User selected to display one category with active products.");
+                DisplayCategoryWithActiveProducts(options);
+                break;
             case "0":
                 logger.Info("Returning to main menu from Category Menu.");
                 back = true;
@@ -183,7 +187,7 @@ static void DisplayProducts(DbContextOptions<DataContext> options)
     foreach (var p in products)
     {
         var status = p.Discontinued ? "[Discontinued]" : "[Active]";
-        Console.WriteLine($"{status} ID: {p.ProductId} - {p.ProductName}");
+        Console.WriteLine($" ID: {p.ProductId} - {p.ProductName}");
     }
 
     logger.Info("Displayed {0} products (Filter: {1})", products.Count, filter);
@@ -543,5 +547,53 @@ static void DisplayAllCategoriesWithActiveProducts(DbContextOptions<DataContext>
 
     logger.Info("Displayed all categories with their active products.");
     Console.WriteLine("Press any key to return...");
+    Console.ReadKey();
+}
+static void DisplayCategoryWithActiveProducts(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Display One Category with Active Products ===");
+
+    Console.Write("Enter Category ID: ");
+    if (!int.TryParse(Console.ReadLine(), out int categoryId))
+    {
+        Console.WriteLine("Invalid input.");
+        logger.Warn("Invalid input for category ID.");
+        return;
+    }
+
+    var category = db.Categories
+        .Include(c => c.Products)
+        .FirstOrDefault(c => c.CategoryId == categoryId);
+
+    if (category == null)
+    {
+        Console.WriteLine("Category not found.");
+        logger.Warn("Category ID {0} not found.", categoryId);
+        return;
+    }
+
+    var activeProducts = category.Products
+        .Where(p => !p.Discontinued)
+        .ToList();
+
+    Console.WriteLine($"\nCategory: {category.CategoryName}");
+    if (activeProducts.Any())
+    {
+        foreach (var product in activeProducts)
+        {
+            Console.WriteLine($"  - {product.ProductName}");
+        }
+    }
+    else
+    {
+        Console.WriteLine("  (No active products)");
+    }
+
+    logger.Info("Displayed category ID {0} with active products.", categoryId);
+    Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
 }
