@@ -29,7 +29,7 @@ while (!exit)
     Console.Clear();
     Console.WriteLine("=== Northwind Console App ===");
     Console.WriteLine("1. Product Menu");
-    Console.WriteLine("2. Category Menu (coming soon)");
+    Console.WriteLine("2. Category Menu");
     Console.WriteLine("0. Exit");
     Console.Write("Select an option: ");
     string? choice = Console.ReadLine();
@@ -116,6 +116,8 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
         Console.WriteLine("2. Add New Category");
         Console.WriteLine("3. Edit Category");
         Console.WriteLine("4. Delete Category");
+        Console.WriteLine("5. Display all categories with active products");
+        Console.WriteLine("6. Display a specific category with active products");
         Console.WriteLine("0. Back to Main Menu");
         Console.Write("Choose an option: ");
         string? input = Console.ReadLine();
@@ -137,6 +139,10 @@ static void ShowCategoryMenu(DbContextOptions<DataContext> options)
             case "4":
                 logger.Info("User selected to delete a category.");
                 DeleteCategory(options);
+                break;
+                case "5":
+                logger.Info("User selected to display all categories with active products.");
+                DisplayAllCategoriesWithActiveProducts(options);
                 break;
             case "0":
                 logger.Info("Returning to main menu from Category Menu.");
@@ -504,5 +510,38 @@ static void DeleteCategory(DbContextOptions<DataContext> options)
     logger.Info("Deleted category ID {0} - {1}", id, category.CategoryName);
 
     Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
+static void DisplayAllCategoriesWithActiveProducts(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== Categories and Active Products ===\n");
+
+    var categories = db.Categories
+        .Include(c => c.Products)
+        .ToList();
+
+    foreach (var category in categories)
+    {
+        var activeProducts = category.Products
+            .Where(p => p.Discontinued == false)
+            .ToList();
+
+        if (activeProducts.Any())
+        {
+            Console.WriteLine($"Category: {category.CategoryName}");
+            foreach (var product in activeProducts)
+            {
+                Console.WriteLine($"  - {product.ProductName}");
+            }
+            Console.WriteLine();
+        }
+    }
+
+    logger.Info("Displayed all categories with their active products.");
+    Console.WriteLine("Press any key to return...");
     Console.ReadKey();
 }
