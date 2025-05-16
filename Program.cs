@@ -65,6 +65,7 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
     {
         Console.Clear();
         Console.WriteLine("=== Product Menu ===");
+        Console.WriteLine("5. Display Specific Product");
         Console.WriteLine("4. Delete Product");
         Console.WriteLine("3. Edit Product");
         Console.WriteLine("2. Add New Product");
@@ -75,6 +76,10 @@ static void ShowProductMenu(DbContextOptions<DataContext> options)
 
         switch (input)
         {
+           case "5":
+    logger.Info("User selected to display a specific product.");
+    DisplaySingleProduct(options);
+    break;
             case "4":
                 logger.Info("User selected to delete a product.");
                 DeleteProduct(options);
@@ -171,6 +176,8 @@ static void DisplayProducts(DbContextOptions<DataContext> options)
     Console.WriteLine("1. All");
     Console.WriteLine("2. Active (Not Discontinued)");
     Console.WriteLine("3. Discontinued");
+    
+
     Console.Write("Choose a filter: ");
     string? filter = Console.ReadLine();
 
@@ -594,6 +601,50 @@ static void DisplayCategoryWithActiveProducts(DbContextOptions<DataContext> opti
     }
 
     logger.Info("Displayed category ID {0} with active products.", categoryId);
+    Console.WriteLine("\nPress any key to return...");
+    Console.ReadKey();
+}
+static void DisplaySingleProduct(DbContextOptions<DataContext> options)
+{
+    var logger = LogManager.GetCurrentClassLogger();
+    using var db = new DataContext(options);
+
+    Console.Clear();
+    Console.WriteLine("=== View Specific Product ===");
+    Console.Write("Enter Product ID: ");
+
+    if (!int.TryParse(Console.ReadLine(), out int productId))
+    {
+        Console.WriteLine("Invalid input. Must be a number.");
+        logger.Warn("Invalid Product ID input.");
+        Console.ReadKey();
+        return;
+    }
+
+    var product = db.Products.FirstOrDefault(p => p.ProductId == productId);
+
+    if (product == null)
+    {
+        Console.WriteLine("Product not found.");
+        logger.Warn("Product ID {0} not found.", productId);
+        Console.ReadKey();
+        return;
+    }
+
+    Console.Clear();
+    Console.WriteLine("=== Product Details ===");
+    Console.WriteLine($"ID: {product.ProductId}");
+    Console.WriteLine($"Name: {product.ProductName}");
+    Console.WriteLine($"Supplier ID: {product.SupplierId}");
+    Console.WriteLine($"Category ID: {product.CategoryId}");
+    Console.WriteLine($"Quantity Per Unit: {product.QuantityPerUnit}");
+    Console.WriteLine($"Unit Price: {product.UnitPrice:C}");
+    Console.WriteLine($"Units In Stock: {product.UnitsInStock}");
+    Console.WriteLine($"Units On Order: {product.UnitsOnOrder}");
+    Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
+    Console.WriteLine($"Discontinued: {product.Discontinued}");
+
+    logger.Info("Displayed details for product ID {0}", productId);
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
 }
