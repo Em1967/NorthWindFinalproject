@@ -194,7 +194,7 @@ static void DisplayProducts(DbContextOptions<DataContext> options)
     foreach (var p in products)
     {
         var status = p.Discontinued ? "[Discontinued]" : "[Active]";
-        Console.WriteLine($" ID: {p.ProductId} - {p.ProductName}");
+        Console.WriteLine($"{p.ProductName}");
     }
 
     logger.Info("Displayed {0} products (Filter: {1})", products.Count, filter);
@@ -611,22 +611,75 @@ static void DisplaySingleProduct(DbContextOptions<DataContext> options)
 
     Console.Clear();
     Console.WriteLine("=== View Specific Product ===");
-    Console.Write("Enter Product ID: ");
+    Console.WriteLine("Search by:");
+    Console.WriteLine("1. Product ID");
+    Console.WriteLine("2. Product Name");
+    Console.Write("Choose an option: ");
+    string? searchChoice = Console.ReadLine();
 
-    if (!int.TryParse(Console.ReadLine(), out int productId))
+    Product? product = null;
+
+    if (searchChoice == "1")
     {
-        Console.WriteLine("Invalid input. Must be a number.");
-        logger.Warn("Invalid Product ID input.");
-        Console.ReadKey();
+        Console.Write("Enter Product ID: ");
+        if (!int.TryParse(Console.ReadLine(), out int productId))
+        {
+            Console.WriteLine("Invalid input. Must be a number.");
+            logger.Warn("Invalid Product ID input.");
+            Console.ReadKey();
+            return;
+        }
+
+        product = db.Products.FirstOrDefault(p => p.ProductId == productId);
+    }
+    else if (searchChoice == "2")
+    {
+        Console.Write("Enter Product Name (partial or full): ");
+        string? name = Console.ReadLine();
+
+        var matches = db.Products
+            .Where(p => p.ProductName.Contains(name!))
+            .ToList();
+
+        if (matches.Count == 0)
+        {
+            Console.WriteLine("No products found matching that name.");
+            logger.Warn("No product found for name: {0}", name);
+            Console.ReadKey();
+            return;
+        }
+        else if (matches.Count == 1)
+        {
+            product = matches[0];
+        }
+        else
+        {
+            Console.WriteLine("\nMultiple matches found:");
+            foreach (var p in matches)
+            {
+                Console.WriteLine($"ID: {p.ProductId} - {p.ProductName}");
+            }
+
+            Console.Write("Enter the Product ID of the one you want to view: ");
+            if (!int.TryParse(Console.ReadLine(), out int chosenId))
+            {
+                Console.WriteLine("Invalid input.");
+                return;
+            }
+
+            product = matches.FirstOrDefault(p => p.ProductId == chosenId);
+        }
+    }
+    else
+    {
+        Console.WriteLine("Invalid choice.");
         return;
     }
-
-    var product = db.Products.FirstOrDefault(p => p.ProductId == productId);
 
     if (product == null)
     {
         Console.WriteLine("Product not found.");
-        logger.Warn("Product ID {0} not found.", productId);
+        logger.Warn("Product not found during display.");
         Console.ReadKey();
         return;
     }
@@ -644,7 +697,7 @@ static void DisplaySingleProduct(DbContextOptions<DataContext> options)
     Console.WriteLine($"Reorder Level: {product.ReorderLevel}");
     Console.WriteLine($"Discontinued: {product.Discontinued}");
 
-    logger.Info("Displayed details for product ID {0}", productId);
+    logger.Info("Displayed details for product: {0}", product.ProductName);
     Console.WriteLine("\nPress any key to return...");
     Console.ReadKey();
 }
